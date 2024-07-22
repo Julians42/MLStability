@@ -16,7 +16,7 @@ def num_step(ys, dt, nsteps, all_steps=True):
    dx = 1/(len(ys)-1)
    params = np.array([1 - dt / dx, dt/dx])
    A = make_matrix(params, len(ys), 2)
-   sol = solver(A, ys, nsteps, all_steps)
+   sol = solver(A, ys, nsteps, stencil=2, all_steps=all_steps)
    return sol
 
 """
@@ -36,11 +36,13 @@ Output:
   sol - The resulting solution from num solver  
 """
 def ml_step(ys, nsteps, params, stencil, all_steps=True):
-   y_next = np.zeros((len(ys), nsteps+1))
-   y_next[:,0] = ys
-   dx = 1/(len(ys)-1)
-   A = make_matrix(params, len(ys), stencil)
-   sol = solver(A, ys, nsteps, all_steps)
+   nx = len(ys) + stencil - 2 # add extra ghost points if stencil>2
+   ys_ghost = np.zeros(nx)
+   ys_ghost[stencil-2:] = ys
+   if stencil > 2:
+      ys_ghost[:stencil-2] = ys[len(ys)-(stencil-2):len(ys)]
+   A = make_matrix(params, nx, stencil)
+   sol = solver(A, ys_ghost, nsteps, stencil, all_steps)
    return sol
     
 
@@ -48,17 +50,18 @@ def ml_step(ys, nsteps, params, stencil, all_steps=True):
 General solver given step matrix A to go from initial
 state to next state
 """
-def solver(A, ys, nsteps, all_steps=True):
+def solver(A, ys, nsteps, stencil=2, all_steps=True):
    y_next = np.zeros((len(ys), nsteps+1))
    y_next[:,0] = ys
 
    for i in range(nsteps):
       y_next[:,i+1] = A @ y_next[:,i]
-      y_next[0,i+1] = y_next[-1,i+1]
+      y_next[:stencil-1,i+1] = y_next[-(stencil-1):,i+1]
    if all_steps:
-      return y_next
+      return y_next[stencil-2:,:]
    else:
-      return y_next[:,-1]
+      print(y_next.shape)
+      return y_next[stencil-2:,-1]
 
 """
 Construct the matrix A given the params.

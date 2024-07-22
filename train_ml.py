@@ -1,5 +1,5 @@
 import numpy as np
-from MLStability.wave_solvers import ml_step
+from wave_solvers import ml_step
 from scipy.optimize import minimize
 
 """
