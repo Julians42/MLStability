@@ -11,8 +11,8 @@ class Model(nn.Module):
         self.stencil = stencil
         
         self.fc1 = nn.Linear(stencil, 100).double()
-        self.fc2 = nn.Linear(100, 50).double()
-        self.fc3 = nn.Linear(50, 1).double()
+        self.fc2 = nn.Linear(100, 100).double()
+        self.fc3 = nn.Linear(100, 1).double()
         self.act = nn.ReLU()
     
     def forward(self, u):
